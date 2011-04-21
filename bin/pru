@@ -1,31 +1,42 @@
 #!/usr/bin/env ruby
 
+autoload :Pru, 'pru'
 require 'optparse'
 
-$LOAD_PATH << File.join(File.dirname(__FILE__), '..', 'lib')
-require 'pru'
-
-options = {}
-
-OptionParser.new { |opts|
-  opts.banner = <<-EOS
+usage = <<-EOS
 Pipeable Ruby
 
 Use ruby in your pipes, forget about grep/sed/awk/wc...
 
 Map works on each line as String.
-Reduce works on all lines as Array (optional or via -r).
+Reduce works on all lines as Array (optional or via -e).
 
 Usage:
     something | pru 'map' ['reduce']
-    something | pru -r 'reduce'
-  EOS
+    something | pru -e 'reduce'
+EOS
+
+options = {}
+
+OptionParser.new { |opts|
+  opts.banner = usage
 
   opts.separator ''
   opts.separator 'Options:'
 
-  opts.on('-r', '--reduce CODE', 'Reduce via CODE') { |code|
+  opts.on('-e', '--execute CODE', 'Reduce via CODE') { |code|
     options[:reduce] = code
+  }
+
+  opts.separator ''
+  opts.separator 'Load options:'
+
+  opts.on('-I', '--libdir LIBDIR', 'Include LIBDIR in the search path for required modules') { |dir|
+    $LOAD_PATH << dir
+  }
+
+  opts.on('-r', '--require MODULE', 'Require MODULE before executing any code') { |mod|
+    require mod
   }
 
   opts.separator ''
@@ -42,16 +53,18 @@ Usage:
   }
 }.parse!
 
+abort usage if ARGV.size > 2
 map, reduce = ARGV
-reduce ||= options[:reduce]
-map = nil if map and map.empty?
 
-if map and not reduce
-  Pru.map($stdin, map) { |x| puts x }
-elsif map and reduce
+map    ||= options[:map]
+reduce ||= options[:reduce]
+
+map = 'true' if map.nil? || map.strip.empty?
+
+if reduce
   results = []
   Pru.map($stdin, map) { |x| results << x }
   puts Pru.reduce(results, reduce)
-elsif reduce
-  puts Pru.reduce($stdin.read.split($/), reduce)
+else
+  Pru.map($stdin, map) { |x| puts x }
 end
