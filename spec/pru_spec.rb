@@ -16,8 +16,8 @@ describe Pru do
       %x{ls -l | ./bin/pru /G/}.split($/).size.should == 2
     end
 
-    it 'selects via i' do
-      %x{cat spec/test.txt | ./bin/pru 'i'}.split($/)[0...3].should == %w[1 2 3]
+    it 'selects via $.' do
+      %x{cat spec/test.txt | ./bin/pru '$.'}.split($/)[0...3].should == %w[1 2 3]
     end
 
     it 'maps' do
