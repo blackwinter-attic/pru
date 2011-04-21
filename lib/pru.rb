@@ -1,9 +1,12 @@
 require 'pru/core_ext'
 
-class Pru
-  VERSION = File.read( File.join(File.dirname(__FILE__),'..','VERSION') ).strip
+module Pru
 
-  def self.map(io, code)
+  extend self
+
+  VERSION = File.read(File.join(File.dirname(__FILE__), '..', 'VERSION')).strip
+
+  def map(io, code)
     String.class_eval <<-RUBY, __FILE__, __LINE__ + 1
       def _pru(i)
         #{code}
@@ -24,7 +27,7 @@ class Pru
     end
   end
 
-  def self.reduce(array, code)
+  def reduce(array, code)
     Array.class_eval <<-RUBY, __FILE__, __LINE__ + 1
       def _pru
         #{code}
@@ -32,4 +35,5 @@ class Pru
     RUBY
     array._pru
   end
+
 end

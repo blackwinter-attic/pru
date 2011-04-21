@@ -1,41 +1,57 @@
 #!/usr/bin/env ruby
-require 'rubygems'
+
 require 'optparse'
 
 $LOAD_PATH << File.join(File.dirname(__FILE__), '..', 'lib')
 require 'pru'
 
 options = {}
-OptionParser.new do |opts|
-  opts.banner = <<BANNER
+
+OptionParser.new { |opts|
+  opts.banner = <<-EOS
 Pipeable Ruby
 
-Use ruby in your pipes, forget about grep / sed / awk / wc ...
+Use ruby in your pipes, forget about grep/sed/awk/wc...
 
-Map works on each line as String
-Reduce works on all lines as Array (optional or via -r)
+Map works on each line as String.
+Reduce works on all lines as Array (optional or via -r).
 
 Usage:
     something | pru 'map' ['reduce']
     something | pru -r 'reduce'
+  EOS
 
-Options:
-BANNER
-  opts.on("-r", "--reduce S","reduce via") {|s| options[:reduce] = s }
-  opts.on("-h", "--help","Show this.") { puts opts; exit }
-  opts.on('-v', '--version','Show Version'){ puts Pru::VERSION; exit}
-end.parse!
+  opts.separator ''
+  opts.separator 'Options:'
+
+  opts.on('-r', '--reduce CODE', 'Reduce via CODE') { |code|
+    options[:reduce] = code
+  }
+
+  opts.separator ''
+  opts.separator 'Generic options:'
+
+  opts.on('-h', '--help', 'Print this help message and exit') {
+    puts opts
+    exit
+  }
+
+  opts.on('--version', 'Print program version and exit') {
+    puts "#{File.basename($0)} v#{Pru::VERSION}"
+    exit
+  }
+}.parse!
 
 map, reduce = ARGV
 reduce ||= options[:reduce]
 map = nil if map and map.empty?
 
 if map and not reduce
-  Pru.map($stdin, map){|x| puts x }
+  Pru.map($stdin, map) { |x| puts x }
 elsif map and reduce
   results = []
-  Pru.map($stdin, map){|x| results << x }
+  Pru.map($stdin, map) { |x| results << x }
   puts Pru.reduce(results, reduce)
 elsif reduce
-  puts Pru.reduce($stdin.read.split("\n"), reduce)
+  puts Pru.reduce($stdin.read.split($/), reduce)
 end
