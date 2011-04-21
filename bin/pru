@@ -9,7 +9,7 @@ Pipeable Ruby
 Use ruby in your pipes, forget about grep/sed/awk/wc...
 
 Map works on each line as String.
-Reduce works on all lines as Array (optional or via -e).
+Reduce works on all lines as Array (optional or via -e/-f).
 
 Usage:
     something | pru 'map' ['reduce']
@@ -24,8 +24,18 @@ OptionParser.new { |opts|
   opts.separator ''
   opts.separator 'Options:'
 
+  opts.on('-m', '--map-file FILE', 'Map via FILE') { |file|
+    options[:map] = Pru::Helper.load_file(file, :map)
+  }
+
+  opts.separator ''
+
   opts.on('-e', '--execute CODE', 'Reduce via CODE') { |code|
     options[:reduce] = code
+  }
+
+  opts.on('-f', '--reduce-file FILE', 'Reduce via FILE') { |file|
+    options[:reduce] = Pru::Helper.load_file(file, :reduce)
   }
 
   opts.separator ''

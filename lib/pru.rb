@@ -1,3 +1,4 @@
+require 'pru/helper'
 require 'pru/core_ext'
 
 module Pru
